@@ -19,6 +19,8 @@ requires = [
     'SQLAlchemy',
     'transaction',
     'zope.sqlalchemy',
+    'pyramid_jinja2',
+    'psycopg2',
 ]
 
 tests_require = [
@@ -53,8 +55,8 @@ setup(
         'paste.app_factory': [
             'main = app:main',
         ],
-        # 'console_scripts': [
-        #     'initialize_pyramidProject_db=app.scripts.initialize_db:main',
-        # ],
+        'console_scripts': [
+            'initialize_pyramidProject_db=app.scripts.initialize_db:main',
+        ],
     },
 )
