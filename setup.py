@@ -21,6 +21,7 @@ requires = [
     'zope.sqlalchemy',
     'pyramid_jinja2',
     'psycopg2',
+    'marshmallow',
 ]
 
 tests_require = [

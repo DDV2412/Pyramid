@@ -11,7 +11,7 @@ Getting Started
 
 - Create a Python virtual environment, if not already created.
 
-    python3 -m venv env
+    python -m venv env
 
 - Upgrade packaging tools, if necessary.
 
