@@ -3,7 +3,12 @@ from sqlalchemy import Column, BigInteger, String, Integer, ForeignKey, \
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import register
+from pyramid.authorization import Allow, Everyone
 
+DBSession = scoped_session(sessionmaker())
+register(DBSession)
 Base = declarative_base()
 
 # Tabel Many-to-Many Contact dengan List
@@ -128,3 +133,11 @@ class Template(Base):
     scheduled = Column(DateTime)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+
+class Root:
+    __acl__ = [(Allow, Everyone, 'view'),
+               (Allow, 'group:editors', 'edit')]
+
+    def __init__(self, request):
+        pass

@@ -1,16 +1,18 @@
 from typing import List
+
+from app.models import DBSession, Contact
 from app.interfaces.contact_interface import ContactInterface
-from app.models import Contact, StatusContact
-from sqlalchemy.orm import Session
 
 
 class ContactRepository(ContactInterface):
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self):
+        self.session = DBSession()
+
+    def get_all_contacts(self) -> List[Contact]:
+        return self.session.query(Contact).all()
 
     def get_contact_by_id(self, contact_id: int) -> Contact:
-        contact = self.session.query(Contact).get(contact_id)
-        return contact
+        return self.session.query(Contact).get(contact_id)
 
     def create_contact(self, contact_data: dict) -> Contact:
         contact = Contact(**contact_data)
@@ -18,19 +20,17 @@ class ContactRepository(ContactInterface):
         self.session.commit()
         return contact
 
-    def update_contact(self, contact_data: dict, contact_id: int) -> Contact:
-        contact = self.session.query(Contact).get(contact_id)
+    def update_contact(self, contact_id: int, contact_data: dict) -> Contact | None:
+        contact = self.get_contact_by_id(contact_id)
         if contact:
-            if 'status' in contact_data:
-                contact.status = StatusContact(contact_data['status'])
             for key, value in contact_data.items():
                 setattr(contact, key, value)
             self.session.commit()
-
-        return contact
+            return contact
+        return None
 
     def delete_contact(self, contact_id: int) -> bool:
-        contact = self.session.query(Contact).get(contact_id)
+        contact = self.get_contact_by_id(contact_id)
         if contact:
             self.session.delete(contact)
             self.session.commit()
@@ -45,5 +45,5 @@ class ContactRepository(ContactInterface):
                 contact = Contact(*contact_data)
                 self.session.add(contact)
                 contacts.append(contact)
-                self.session.commit()
+            self.session.commit()
         return contacts

@@ -57,5 +57,3 @@ def validate_update(self, request):
             'success': False,
             'error': 'No fields to update'
         }
-
-

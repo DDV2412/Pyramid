@@ -5,6 +5,9 @@ from app.models import Contact
 
 
 class ContactInterface(ABC):
+    @abstractmethod
+    def get_all_contacts(self) -> List[Contact]:
+        pass
 
     @abstractmethod
     def get_contact_by_id(self, contact_id: int) -> Contact:
@@ -15,7 +18,7 @@ class ContactInterface(ABC):
         pass
 
     @abstractmethod
-    def update_contact(self, contact_data: dict, contact_id: int) -> Contact:
+    def update_contact(self, contact_id: int, contact_data: dict) -> Contact:
         pass
 
     @abstractmethod
