@@ -80,10 +80,19 @@ class Contact(Base):
     email = Column(String)
     firstname = Column(String)
     lastname = Column(String)
-    status = Column(Enum(StatusContact))
+    status = Column(Enum(StatusContact), default=StatusContact.SUBSCRIBER)
     lists = relationship("List", secondary=list_contact, back_populates="contacts")
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if 'data' in kwargs:
+            self.from_json(kwargs['data'])
+
+    def from_json(self, data):
+        for field, value in data.items():
+            setattr(self, field, value)
 
 
 class List(Base):

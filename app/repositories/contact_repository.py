@@ -1,12 +1,11 @@
 from typing import List
-
 from app.models import DBSession, Contact
 from app.interfaces.contact_interface import ContactInterface
 
 
 class ContactRepository(ContactInterface):
     def __init__(self):
-        self.session = DBSession()
+        self.session = DBSession
 
     def get_all_contacts(self) -> List[Contact]:
         return self.session.query(Contact).all()
@@ -15,6 +14,7 @@ class ContactRepository(ContactInterface):
         return self.session.query(Contact).get(contact_id)
 
     def create_contact(self, contact_data: dict) -> Contact:
+        print(self.session.query(Contact).count())
         contact = Contact(**contact_data)
         self.session.add(contact)
         self.session.commit()

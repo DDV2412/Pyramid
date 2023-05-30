@@ -8,7 +8,7 @@ class ContactController:
         self.request = request
         self.contact_service = ContactService()
 
-    @view_config(route_name='get_all_contact', renderer='json', request_method="GET")
+    @view_config(route_name='get_all_contact', renderer='json', request_method="GET")git
     def get_all_contact(self):
         contacts = self.contact_service.get_all_contacts()
         return {
