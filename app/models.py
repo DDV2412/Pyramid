@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, BigInteger, String, Integer, ForeignKey, \
     Table, Text, DateTime, Enum
 from sqlalchemy.ext.declarative import declarative_base
@@ -77,22 +79,25 @@ class Contact(Base):
     __tablename__ = 'contact'
 
     id = Column(BigInteger, primary_key=True)
-    email = Column(String)
-    firstname = Column(String)
+    email = Column(String, nullable=False)
+    firstname = Column(String, nullable=False)
     lastname = Column(String)
     status = Column(Enum(StatusContact), default=StatusContact.SUBSCRIBER)
     lists = relationship("List", secondary=list_contact, back_populates="contacts")
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if 'data' in kwargs:
-            self.from_json(kwargs['data'])
-
-    def from_json(self, data):
-        for field, value in data.items():
-            setattr(self, field, value)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "status": self.status.value,
+            "lists": [lst.id for lst in self.lists],
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
 
 
 class List(Base):

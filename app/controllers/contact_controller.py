@@ -8,12 +8,12 @@ class ContactController:
         self.request = request
         self.contact_service = ContactService()
 
-    @view_config(route_name='get_all_contact', renderer='json', request_method="GET")git
+    @view_config(route_name='get_all_contact', renderer='json', request_method="GET")
     def get_all_contact(self):
         contacts = self.contact_service.get_all_contacts()
         return {
             'status': 'success',
-            'data': contacts
+            'data': [contact.to_dict() for contact in contacts]
         }
 
     @view_config(route_name='get_contact_by_id', renderer='json', request_method="GET")
@@ -23,7 +23,7 @@ class ContactController:
         if contact:
             return {
                 'status': 'success',
-                'data': contact
+                'data': contact.to_dict()
             }
         else:
             return {
@@ -43,7 +43,7 @@ class ContactController:
         contact = self.contact_service.create_contact(contact_data)
         return {
             'status': 'success',
-            'data': contact
+            'data': contact.to_dict()
         }
 
     @view_config(route_name='update_contact', renderer='json', request_method="PUT")
@@ -60,7 +60,7 @@ class ContactController:
         if contact:
             return {
                 'status': 'success',
-                'data': contact
+                'data': contact.to_dict()
             }
         else:
             return {
@@ -89,5 +89,5 @@ class ContactController:
         contacts = self.contact_service.import_contacts(file_path)
         return {
             'status': 'success',
-            'data': contacts
+            'data': [contact.to_dict() for contact in contacts]
         }

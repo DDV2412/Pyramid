@@ -1,4 +1,7 @@
 from typing import List
+
+import transaction
+
 from app.models import DBSession, Contact
 from app.interfaces.contact_interface import ContactInterface
 
@@ -14,10 +17,11 @@ class ContactRepository(ContactInterface):
         return self.session.query(Contact).get(contact_id)
 
     def create_contact(self, contact_data: dict) -> Contact:
-        print(self.session.query(Contact).count())
         contact = Contact(**contact_data)
         self.session.add(contact)
-        self.session.commit()
+        transaction.commit()
+        contact = self.session.merge(contact)
+        self.session.refresh(contact)
         return contact
 
     def update_contact(self, contact_id: int, contact_data: dict) -> Contact | None:
@@ -25,7 +29,9 @@ class ContactRepository(ContactInterface):
         if contact:
             for key, value in contact_data.items():
                 setattr(contact, key, value)
-            self.session.commit()
+            transaction.commit()
+            contact = self.session.merge(contact)
+            self.session.refresh(contact)
             return contact
         return None
 
@@ -33,7 +39,7 @@ class ContactRepository(ContactInterface):
         contact = self.get_contact_by_id(contact_id)
         if contact:
             self.session.delete(contact)
-            self.session.commit()
+            transaction.commit()
             return True
         return False
 
@@ -45,5 +51,5 @@ class ContactRepository(ContactInterface):
                 contact = Contact(*contact_data)
                 self.session.add(contact)
                 contacts.append(contact)
-            self.session.commit()
+            transaction.commit()
         return contacts
