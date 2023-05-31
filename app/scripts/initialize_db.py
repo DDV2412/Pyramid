@@ -1,8 +1,11 @@
 import argparse
 import sys
 
-from pyramid.paster import bootstrap, setup_logging
+from pyramid.paster import bootstrap, setup_logging, get_appsettings
+from sqlalchemy import engine_from_config
 from sqlalchemy.exc import OperationalError
+
+from app.models.metadata import Base
 
 
 def setup_models(dbsession):
@@ -27,11 +30,14 @@ def main(argv=None):
     args = parse_args(argv)
     setup_logging(args.config_uri)
     env = bootstrap(args.config_uri)
+    settings = get_appsettings(args.config_uri)
+    engine = engine_from_config(settings, 'sqlalchemy.')
 
     try:
         with env['request'].tm:
             dbsession = env['request'].dbsession
             setup_models(dbsession)
+            Base.metadata.create_all(engine)
     except OperationalError:
         print('''
 Pyramid is having a problem using your SQL database.  The problem
