@@ -7,7 +7,6 @@ from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import register
-from pyramid.authorization import Allow, Everyone
 
 DBSession = scoped_session(sessionmaker())
 register(DBSession)
@@ -34,6 +33,15 @@ class Click(Base):
     timestamp = Column(DateTime)
     link_clicked = Column(String)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'mail_campaign_id': self.mail_campaign_id,
+            'contact_id': self.contact_id,
+            'timestamp': self.timestamp,
+            'link_clicked': self.link_clicked
+        }
+
 
 # Tabel untuk menyimpan aktivitas "Open" pada kampanye email
 class Open(Base):
@@ -43,6 +51,14 @@ class Open(Base):
     mail_campaign_id = Column(BigInteger, ForeignKey('mail_campaign.id'))
     contact_id = Column(BigInteger, ForeignKey('contact.id'))
     timestamp = Column(DateTime)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'mail_campaign_id': self.mail_campaign_id,
+            'contact_id': self.contact_id,
+            'timestamp': self.timestamp
+        }
 
 
 # Tabel untuk menyimpan aktivitas "Bounce" pada kampanye email
@@ -54,6 +70,15 @@ class Bounce(Base):
     contact_id = Column(BigInteger, ForeignKey('contact.id'))
     timestamp = Column(DateTime)
     bounce_reason = Column(String)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'mail_campaign_id': self.mail_campaign_id,
+            'contact_id': self.contact_id,
+            'timestamp': self.timestamp,
+            'bounce_reason': self.bounce_reason
+        }
 
 
 class StatusMail(PyEnum):
@@ -109,6 +134,15 @@ class List(Base):
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "contacts": [contact.id for contact in self.contacts],
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
 
 class Mail(Base):
     __tablename__ = 'mail_campaign'
@@ -132,6 +166,22 @@ class Mail(Base):
     opens = relationship("Open")
     bounces = relationship("Bounce")
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'from_name': self.from_name,
+            'from_mail': self.from_mail,
+            'subject': self.subject,
+            'preview_line': self.preview_line,
+            'design': self.design,
+            'status': self.status,
+            'template_id': self.template_id,
+            "scheduled": self.scheduled.strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
 
 class Template(Base):
     __tablename__ = 'template'
@@ -148,10 +198,17 @@ class Template(Base):
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 
-
-class Root:
-    __acl__ = [(Allow, Everyone, 'view'),
-               (Allow, 'group:editors', 'edit')]
-
-    def __init__(self, request):
-        pass
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'from_name': self.from_name,
+            'from_mail': self.from_mail,
+            'subject': self.subject,
+            'preview_line': self.preview_line,
+            'design': self.design,
+            'status': self.status,
+            "scheduled": self.scheduled.strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
