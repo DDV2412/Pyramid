@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from app.services.contact_service import ContactService
-from app.schemas.contact_schema import CreateContactSchema, UpdateContactSchema, validate_data, validate_update
+from app.schemas.contact_schema import CreateContactSchema, validate_data, validate_update
 
 
 class ContactController:
@@ -50,8 +50,7 @@ class ContactController:
     def update_contact(self):
         contact_id = int(self.request.matchdict['id'])
         contact_data = self.request.json_body
-        schema = UpdateContactSchema()
-        is_valid, error = validate_update(contact_data, schema)
+        is_valid, error = validate_update(contact_data)
 
         if not is_valid:
             return {'error': 'Validation Error', 'message': error}

@@ -27,41 +27,20 @@ class UpdateMailSchema(Schema):
     design = fields.Str()
 
 
-def validate_update(self, request):
-    mail_id = request.matchdict['mail_id']
-    mail_data = request.json
-
-    # Validate data
+def validate_update(data):
     try:
-        validated_data = UpdateMailSchema().load(mail_data)
-    except ValidationError as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        schema = UpdateMailSchema()
+        validated_data = schema.load(data)
+        fields_to_update = {}
 
-    # Check for fields that have changed
-    fields_to_update = {}
-    for field, value in validated_data.items():
-        if value is not None:
-            fields_to_update[field] = value
+        # Cek setiap field yang ada dalam data
+        for field in schema.fields:
+            if field in validated_data:
+                fields_to_update[field] = validated_data[field]
 
-    # Perform update only if there are fields to update
-    if fields_to_update:
-        contact = self.contact_repository.update_contact(mail_id, fields_to_update)
-
-        if contact:
-            return {
-                'success': True,
-                'message': 'Mail updated successfully'
-            }
+        if fields_to_update:
+            return True, fields_to_update
         else:
-            return {
-                'success': False,
-                'error': 'Mail not found'
-            }
-    else:
-        return {
-            'success': False,
-            'error': 'No fields to update'
-        }
+            return False, "No fields to update"
+    except ValidationError as e:
+        return False, str(e)

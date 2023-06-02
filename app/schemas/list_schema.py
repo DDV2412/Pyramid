@@ -3,6 +3,7 @@ from marshmallow import Schema, ValidationError, fields
 
 class CreateListSchema(Schema):
     name = fields.Str(required=True)
+    contacts = fields.List(fields.Int())
 
 
 def validate_data(data, schema):
@@ -15,43 +16,22 @@ def validate_data(data, schema):
 
 class UpdateListSchema(Schema):
     name = fields.Str()
+    contacts = fields.List(fields.Int())
 
-
-def validate_update(self, request):
-    list_id = request.matchdict['list_id']
-    list_data = request.json
-
-    # Validate data
+def validate_update(data):
     try:
-        validated_data = UpdateListSchema().load(list_data)
-    except ValidationError as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        schema = UpdateListSchema()
+        validated_data = schema.load(data)
+        fields_to_update = {}
 
-    # Check for fields that have changed
-    fields_to_update = {}
-    for field, value in validated_data.items():
-        if value is not None:
-            fields_to_update[field] = value
+        # Cek setiap field yang ada dalam data
+        for field in schema.fields:
+            if field in validated_data:
+                fields_to_update[field] = validated_data[field]
 
-    # Perform update only if there are fields to update
-    if fields_to_update:
-        contact = self.contact_repository.update_contact(list_id, fields_to_update)
-
-        if contact:
-            return {
-                'success': True,
-                'message': 'List updated successfully'
-            }
+        if fields_to_update:
+            return True, fields_to_update
         else:
-            return {
-                'success': False,
-                'error': 'List not found'
-            }
-    else:
-        return {
-            'success': False,
-            'error': 'No fields to update'
-        }
+            return False, "No fields to update"
+    except ValidationError as e:
+        return False, str(e)
