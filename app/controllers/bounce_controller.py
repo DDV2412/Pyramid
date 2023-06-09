@@ -1,3 +1,4 @@
+from pyramid.response import Response
 from pyramid.view import view_config
 from app.services.bounce_service import BounceService
 
@@ -12,8 +13,9 @@ class OpenController:
         bounce_data = self.request.json_body
 
         bounce = self.bounce_service.create_bounce(bounce_data)
-        return {
+
+        return Response(json_body={
             'status': 'success',
             'data': bounce.to_dict()
-        }
+        }, status_code=200)
 

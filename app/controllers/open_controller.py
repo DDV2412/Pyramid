@@ -1,3 +1,4 @@
+from pyramid.response import Response
 from pyramid.view import view_config
 from app.services.open_service import OpenService
 
@@ -12,8 +13,8 @@ class OpenController:
         open_data = self.request.json_body
 
         open_mail = self.open_service.create_open(open_data)
-        return {
+        return Response(json_body={
             'status': 'success',
             'data': open_mail.to_dict()
-        }
+        }, status_code=200)
 

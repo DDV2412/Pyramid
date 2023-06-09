@@ -1,4 +1,6 @@
-from marshmallow import Schema, ValidationError, fields
+from marshmallow import Schema, ValidationError, fields, validate
+
+from app.models import StatusContact, StatusMail
 
 
 class CreateMailSchema(Schema):
@@ -8,6 +10,10 @@ class CreateMailSchema(Schema):
     subject = fields.Str(required=True)
     preview_line = fields.Str(required=True)
     design = fields.Str(required=True)
+    recipients = fields.List(fields.Int(), required=True)
+    status = fields.Enum(StatusMail)
+    template_id = fields.Int()
+    scheduled = fields.DateTime()
 
 
 def validate_data(data, schema):
@@ -25,6 +31,10 @@ class UpdateMailSchema(Schema):
     subject = fields.Str()
     preview_line = fields.Str()
     design = fields.Str()
+    recipients = fields.List(fields.Int())
+    status = fields.Enum(StatusMail)
+    template_id = fields.Int()
+    scheduled = fields.DateTime()
 
 
 def validate_update(data):

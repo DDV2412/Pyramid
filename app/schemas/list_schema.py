@@ -18,6 +18,7 @@ class UpdateListSchema(Schema):
     name = fields.Str()
     contacts = fields.List(fields.Int())
 
+
 def validate_update(data):
     try:
         schema = UpdateListSchema()

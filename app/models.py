@@ -1,26 +1,26 @@
 import datetime
-
-from sqlalchemy import Column, BigInteger, String, Integer, ForeignKey, \
-    Table, Text, DateTime, Enum
+from sqlalchemy import Column, BigInteger, String, Integer, ForeignKey, Table, Text, DateTime, Enum
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker, scoped_session
 from enum import Enum as PyEnum
-from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import register
+
 
 DBSession = scoped_session(sessionmaker())
 register(DBSession)
 Base = declarative_base()
+
 
 # Tabel Many-to-Many Contact dengan List
 list_contact = Table('list_contact', Base.metadata,
                      Column('contact_id', Integer, ForeignKey('contact.id')),
                      Column('list_id', Integer, ForeignKey('list.id')))
 
-# Tabel Many-to-Many Contact dengan Mail Campaign
-mail_contact = Table('mail_contact', Base.metadata,
-                     Column('mail_id', BigInteger, ForeignKey('mail_campaign.id')),
-                     Column('contact_id', BigInteger, ForeignKey('contact.id')))
+mail_contact = Table(
+    'mail_contact', Base.metadata,
+    Column('mail_id', BigInteger, ForeignKey('mail_campaign.id')),
+    Column('list_id', BigInteger, ForeignKey('list.id'))
+)
 
 
 # Tabel untuk menyimpan aktivitas "Click" pada kampanye email
@@ -38,7 +38,7 @@ class Click(Base):
             'id': self.id,
             'mail_campaign_id': self.mail_campaign_id,
             'contact_id': self.contact_id,
-            'timestamp': self.timestamp,
+            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             'link_clicked': self.link_clicked
         }
 
@@ -57,7 +57,7 @@ class Open(Base):
             'id': self.id,
             'mail_campaign_id': self.mail_campaign_id,
             'contact_id': self.contact_id,
-            'timestamp': self.timestamp
+            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
 
@@ -76,7 +76,7 @@ class Bounce(Base):
             'id': self.id,
             'mail_campaign_id': self.mail_campaign_id,
             'contact_id': self.contact_id,
-            'timestamp': self.timestamp,
+            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             'bounce_reason': self.bounce_reason
         }
 
@@ -119,7 +119,10 @@ class Contact(Base):
             "firstname": self.firstname,
             "lastname": self.lastname,
             "status": self.status.value,
-            "lists": [lst.id for lst in self.lists],
+            "lists": [{
+                "id": lst.id,
+                "name": lst.name,
+            } for lst in self.lists],
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -131,14 +134,14 @@ class List(Base):
     id = Column(BigInteger, primary_key=True)
     name = Column(String)
     contacts = relationship("Contact", secondary=list_contact, back_populates="lists")
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
-            "contacts": [contact.id for contact in self.contacts],
+            "contacts": [contact.to_dict() for contact in self.contacts],
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -154,13 +157,13 @@ class Mail(Base):
     subject = Column(String)
     preview_line = Column(String)
     design = Column(Text)
-    status = Column(Enum(StatusMail))
+    status = Column(Enum(StatusMail), default=StatusMail.ARCHIVED)
     template_id = Column(BigInteger, ForeignKey('template.id'))
-    scheduled = Column(DateTime)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+    scheduled = Column(DateTime, default=datetime.datetime.utcnow())
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
 
-    recipients = relationship("Contact", secondary=mail_contact, backref="mails")
+    recipients = relationship("List", secondary=mail_contact, backref="mails")
     template = relationship("Template")
     clicks = relationship("Click")
     opens = relationship("Open")
@@ -175,8 +178,9 @@ class Mail(Base):
             'subject': self.subject,
             'preview_line': self.preview_line,
             'design': self.design,
-            'status': self.status,
+            'status': self.status.value,
             'template_id': self.template_id,
+            'recipients': [recipient.to_dict() for recipient in self.recipients],
             "scheduled": self.scheduled.strftime("%Y-%m-%d %H:%M:%S"),
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
@@ -193,10 +197,9 @@ class Template(Base):
     subject = Column(String)
     preview_line = Column(String)
     design = Column(Text)
-    status = Column(Enum(StatusTemplate))
-    scheduled = Column(DateTime)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+    status = Column(Enum(StatusTemplate, default=StatusTemplate.ACTIVE))
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
 
     def to_dict(self):
         return {
@@ -207,7 +210,7 @@ class Template(Base):
             'subject': self.subject,
             'preview_line': self.preview_line,
             'design': self.design,
-            'status': self.status,
+            'status': self.status.value,
             "scheduled": self.scheduled.strftime("%Y-%m-%d %H:%M:%S"),
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),

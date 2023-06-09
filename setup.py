@@ -22,6 +22,8 @@ requires = [
     'pyramid_jinja2',
     'psycopg2',
     'marshmallow',
+    'requests',
+    'schedule',
 ]
 
 tests_require = [

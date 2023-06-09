@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 import transaction
@@ -29,6 +30,7 @@ class ListRepository(ListInterface):
         if check_list:
             for key, value in list_data.items():
                 setattr(check_list, key, value)
+                check_list.updated_at = datetime.utcnow()
             transaction.commit()
             check_list = self.session.merge(check_list)
             self.session.refresh(check_list)

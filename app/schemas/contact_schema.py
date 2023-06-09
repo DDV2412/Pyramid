@@ -7,6 +7,7 @@ class CreateContactSchema(Schema):
     firstname = fields.Str(required=True)
     lastname = fields.Str()
     status = fields.Enum(StatusContact)
+    lists = fields.List(fields.Int())
 
 
 def validate_data(data, schema):
@@ -22,6 +23,7 @@ class UpdateContactSchema(Schema):
     firstname = fields.Str()
     lastname = fields.Str()
     status = fields.Enum(StatusContact)
+    lists = fields.List(fields.Int())
 
 
 def validate_update(data):

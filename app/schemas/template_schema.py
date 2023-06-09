@@ -1,5 +1,7 @@
 from marshmallow import Schema, ValidationError, fields
 
+from app.models import StatusTemplate
+
 
 class CreateTemplateSchema(Schema):
     name = fields.Str(required=True)
@@ -8,6 +10,7 @@ class CreateTemplateSchema(Schema):
     subject = fields.Str(required=True)
     preview_line = fields.Str(required=True)
     design = fields.Str(required=True)
+    status = fields.Enum(StatusTemplate)
 
 
 def validate_data(data, schema):
@@ -25,6 +28,7 @@ class UpdateTemplateSchema(Schema):
     subject = fields.Str()
     preview_line = fields.Str()
     design = fields.Str()
+    status = fields.Enum(StatusTemplate)
 
 
 def validate_update(data):

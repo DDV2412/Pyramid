@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 import transaction
@@ -29,6 +30,7 @@ class TemplateRepository(TemplateInterface):
         if template:
             for key, value in template_data.items():
                 setattr(template, key, value)
+                template.updated_at = datetime.utcnow()
             transaction.commit()
             template = self.session.merge(template)
             self.session.refresh(template)

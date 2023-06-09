@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List
 
 import transaction
 
-from app.models import DBSession, Contact
+from app.models import DBSession, Contact, List as ListContact
 from app.interfaces.contact_interface import ContactInterface
 
 
@@ -17,7 +18,10 @@ class ContactRepository(ContactInterface):
         return self.session.query(Contact).get(contact_id)
 
     def create_contact(self, contact_data: dict) -> Contact:
+        list_ids = contact_data.pop('lists', [])
         contact = Contact(**contact_data)
+        lists = self.session.query(ListContact).filter(ListContact.id.in_(list_ids)).all()
+        contact.lists = lists
         self.session.add(contact)
         transaction.commit()
         contact = self.session.merge(contact)
@@ -29,6 +33,7 @@ class ContactRepository(ContactInterface):
         if contact:
             for key, value in contact_data.items():
                 setattr(contact, key, value)
+                contact.updated_at = datetime.utcnow()
             transaction.commit()
             contact = self.session.merge(contact)
             self.session.refresh(contact)
@@ -43,13 +48,10 @@ class ContactRepository(ContactInterface):
             return True
         return False
 
-    def import_contacts(self, file_path: str) -> List[Contact]:
-        contacts = []
-        with open(file_path, 'r') as file:
-            for line in file:
-                contact_data = line.strip().split(',')
-                contact = Contact(*contact_data)
-                self.session.add(contact)
-                contacts.append(contact)
-            transaction.commit()
-        return contacts
+    def import_contacts(self, contact_data: List[dict]) -> bool:
+        for data in contact_data:
+            contact = Contact(**data)
+            self.session.add(contact)
+        transaction.commit()
+
+        return True

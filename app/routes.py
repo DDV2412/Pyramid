@@ -15,6 +15,7 @@ def includeme(config):
     config.add_route('get_all_mails', '/mails', request_method='GET')
     config.add_route('get_mail_by_id', '/mails/{id}', request_method='GET')
     config.add_route('create_mail', '/mails', request_method='POST')
+    config.add_route('send_email', '/send-email', request_method='POST')
     config.add_route('update_mail', '/mails/{id}', request_method='PUT')
     config.add_route('delete_mail', '/mails/{id}', request_method='DELETE')
 
