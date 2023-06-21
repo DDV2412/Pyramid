@@ -13,3 +13,5 @@ IMAP = {
     'username': 'xxxx',
     'password': 'xxxx'
 }
+
+RETURN_PATH = 'mail@mail.com'

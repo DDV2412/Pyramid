@@ -165,6 +165,7 @@ class Mail(Base):
 
     recipients = relationship("List", secondary=mail_contact, backref="mails")
     template = relationship("Template")
+    history_emails = relationship("HistoryEmail")
     clicks = relationship("Click")
     opens = relationship("Open")
     bounces = relationship("Bounce")
@@ -214,4 +215,23 @@ class Template(Base):
             "scheduled": self.scheduled.strftime("%Y-%m-%d %H:%M:%S"),
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+
+class HistoryEmail(Base):
+    __tablename__ = 'history_email'
+
+    id = Column(BigInteger, primary_key=True)
+    mail_campaign_id = Column(BigInteger, ForeignKey('mail_campaign.id'))
+    contact_id = Column(BigInteger, ForeignKey('contact.id'))
+    message_id = Column(BigInteger)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'mail_campaign_id': self.mail_campaign_id,
+            'contact_id': self.contact_id,
+            'message_id': self.message_id,
+            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         }

@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from app.config import SMTP_SERVERS
+from app.config import SMTP_SERVERS, RETURN_PATH
 
 
 def send_email(mail: dict):
@@ -23,13 +23,17 @@ def send_email(mail: dict):
                     smtp.login(server['username'], server['password'])
 
                     # Send the email with return_path set to the sender's email
-                    return_path = server['username']
+                    return_path = RETURN_PATH
                     smtp.sendmail(mail.get("from_mail", ""), contact.email, msg.as_string(),
                                   rcpt_options=f"SMTPUTF8 RETURN-PATH={return_path}")
+
+                    response = smtp.send_message(msg)
+                    message_id = response.get("Message-ID", "")
 
                     smtp.quit()
 
                     print(f'Email sent successfully to {contact.email}.')
                     break  # Exit the loop if email is sent successfully
                 except smtplib.SMTPException as e:
-                    print(f'An error occurred while sending the email to {contact.email} via {server["host"]}: {str(e)}')
+                    print(f'An error occurred while sending the email to {contact.email} '
+                          f'via {server["host"]}: {str(e)}')
